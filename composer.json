@@ -1,0 +1,23 @@
+{
+    "name": "toom1996/toom-validator",
+    "description": "Toom validator",
+    "type": "library",
+    "license": "BSD-3-Clause",
+    "autoload": {
+        "psr-4": {
+            "EasyValidator\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "toom",
+            "email": "23cm.cn@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "phpunit/phpunit": "9.5.x-dev",
+        "pimple/pimple": "3.0"
+    }
+}
