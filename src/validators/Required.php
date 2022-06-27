@@ -4,6 +4,9 @@ namespace EasyValidator\validators;
 
 use EasyValidator\BaseValidation;
 
+/**
+ * @since v1.0
+ */
 class Required extends BaseValidation
 {
 
