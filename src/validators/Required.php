@@ -9,33 +9,69 @@ use EasyValidator\BaseValidation;
  */
 class Required extends BaseValidation
 {
-
+    /**
+     * @var bool
+     */
     protected bool $isStrict = false;
 
     /**
+     * Set strict mode.
+     * If set to true, only null values are trigger a constraint violation.
      * @param bool $isStrict
      * @return $this
      */
-    public function strict(bool $isStrict = false): Required
+    public function isStrict(bool $isStrict = false): Required
     {
         $this->isStrict = $isStrict;
+
         return $this;
     }
 
-    public function isValid(&$value)
+    /**
+     * Return has error.
+     * @param mixed $value
+     * @return bool
+     */
+    public function isValid(&$value): bool
     {
-        foreach ($this->validationAttributes as $attribute) {
-            var_dump($this->valid($value[$attribute]));
+        foreach ($this->validationAttributes as $validationAttribute) {
+            if ($v = $this->valid($value[$validationAttribute], $validationAttribute)) {
+                $this->addErrors($v, $validationAttribute);
+                return false;
+            }
         }
+
+        return true;
     }
 
-    public function valid($value)
+    /**
+     * Valid value whether trigger constraint.
+     * @param $value
+     * @param $attribute
+     * @return mixed|string|null
+     */
+    public function valid($value, $attribute)
+    {
+        if (!$this->_isEmpty($value)) {
+            return null;
+        }
+
+        return $this->formatMessage('{attribute} 不能为空.', [
+            'attribute' => $attribute
+        ]);
+    }
+
+    /**
+     * Check value is it empty.
+     * @param $value
+     * @return bool
+     */
+    private function _isEmpty($value): bool
     {
         if ($this->isStrict) {
-            return $value !== null;
+            return $value === null;
         }else{
-            return $value !== '' && $value != [] && $value !== null;
+            return $value === '' || $value === [] || $value === null;
         }
     }
-
 }

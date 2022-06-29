@@ -11,32 +11,38 @@ class Validator
 {
     protected ?ServiceContainer $serviceContainer;
 
-    public array $attributes = [];
+    public array $formData = [];
+
+    public array $errors;
 
     public array $providers = [
         'required' => Required::class
     ];
 
-    public function __construct(array $attributes = [])
+    public function __construct(array $formData = [])
     {
         $this->serviceContainer = new ServiceContainer();
 
         $this->providers = array_merge($this->providers, $this->_getValidatorProviders());
 
-        $this->attributes = $attributes;
+        $this->formData = $formData;
     }
 
     private function _getValidatorProviders(): array
     {
         return [
-            'required' => Required::class
+            'required' => Required::class,
         ];
     }
 
-    public function isValid()
+    public function isValid(): bool
     {
         foreach ($this->serviceContainer->keys() as $validator) {
-            $this->serviceContainer->offsetGet($validator)->isValid($this->attributes);
+            $validatorContainer = $this->serviceContainer->offsetGet($validator);
+            if (!$validatorContainer->isValid($this->formData)) {
+                $this->errors = $validatorContainer->errors;
+                return false;
+            }
         }
 
         return true;
@@ -54,4 +60,13 @@ class Validator
     }
 
 
+    public function getErrors()
+    {
+
+    }
+
+    public function getFirstErrorString()
+    {
+        return current($this->errors);
+    }
 }
