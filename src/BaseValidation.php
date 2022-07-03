@@ -4,9 +4,9 @@ namespace EasyValidator;
 
 use Pimple\ServiceProviderInterface;
 
-class BaseValidation
+abstract class BaseValidation
 {
-    public array $errors = [];
+    public ?array $errors = [];
 
     /**
      * Validation attributes.
@@ -19,25 +19,37 @@ class BaseValidation
         $this->addAttributes($validationAttributes);
     }
 
-    public function addAttributes($attributes)
+    public function addAttributes($validationAttributes)
     {
-        if (is_array($attributes)) {
-
-            $this->validationAttributes = array_merge($this->validationAttributes, $attributes);
-
-        }elseif (is_string($attributes)) {
-
-            $this->validationAttributes[] = $attributes;
-
+        if (is_array($validationAttributes)) {
+            $this->validationAttributes = array_merge($this->validationAttributes, $validationAttributes);
+        } elseif (is_string($validationAttributes)) {
+            $this->validationAttributes[] = $validationAttributes;
         }
     }
 
-    public function isValid(&$value)
+    /**
+     * @param $value
+     * @return bool
+     */
+    public function isValid(&$value): bool
     {
-        foreach ($this->validationAttributes as $attribute) {
-            var_dump($value[$attribute]);
+        foreach ($this->validationAttributes as $validationAttribute) {
+            if ($v = $this->valid($value[$validationAttribute], $validationAttribute)) {
+                $this->addErrors($v, $validationAttribute);
+                return false;
+            }
         }
+
+        return true;
     }
+
+
+    protected function valid($value, $attribute)
+    {
+        return null;
+    }
+
 
     public function formatMessage($message, $params)
     {

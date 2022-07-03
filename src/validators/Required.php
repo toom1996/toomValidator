@@ -48,7 +48,7 @@ class Required extends BaseValidation
      * Valid value whether trigger constraint.
      * @param $value
      * @param $attribute
-     * @return mixed|string|null
+     * @return mixed|StringValidator|null
      */
     public function valid($value, $attribute)
     {
@@ -70,7 +70,7 @@ class Required extends BaseValidation
     {
         if ($this->isStrict) {
             return $value === null;
-        }else{
+        } else {
             return $value === '' || $value === [] || $value === null;
         }
     }
