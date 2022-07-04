@@ -7,7 +7,7 @@ use EasyValidator\BaseValidation;
 /**
  * @since v1.0
  */
-class Required extends BaseValidation
+class RequiredValidator extends BaseValidation
 {
     /**
      * @var bool
@@ -20,7 +20,7 @@ class Required extends BaseValidation
      * @param bool $isStrict
      * @return $this
      */
-    public function isStrict(bool $isStrict = false): Required
+    public function isStrict(bool $isStrict = false): RequiredValidator
     {
         $this->isStrict = $isStrict;
 

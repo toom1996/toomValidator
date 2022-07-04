@@ -6,11 +6,11 @@ use EasyValidator\exceptions\InvalidValidatorException;
 use EasyValidator\validators\DefaultValidator;
 use EasyValidator\validators\FunctionValidator;
 use EasyValidator\validators\NumberValidator;
-use EasyValidator\validators\Required;
+use EasyValidator\validators\RequiredValidator;
 use EasyValidator\validators\StringValidator;
 
 /**
- * @method Required required(array $attributes = [])
+ * @method RequiredValidator required(array $attributes = [])
  * @method StringValidator string(array $attributes = [])
  * @method NumberValidator number(array $attributes = [])
  * @method DefaultValidator default(array $attributes = [])
@@ -18,34 +18,62 @@ use EasyValidator\validators\StringValidator;
  */
 class Validator
 {
+    /**
+     * Provider container.
+     * @var ServiceContainer|null
+     */
     protected ?ServiceContainer $serviceContainer;
 
-    public static $app;
+    public static ?Factory $app = null;
 
-    public array $formData = [];
+    /**
+     * Validation values.
+     * @var array
+     */
+    public array $validationValues = [];
 
     public array $errors;
 
-    public array $providers = [
-        'required' => Required::class
-    ];
+    /**
+     * You can customize validation rules by configuring this property.
+     * @var array
+     */
+    public array $providers = [];
 
-    public function __construct(array $formData = [])
+    public function __construct(array $formData = [], $options = [])
     {
         $this->serviceContainer = new ServiceContainer();
 
         $this->providers = array_merge($this->providers, $this->getValidatorProviders());
 
-        $this->formData = $formData;
+        $this->validationValues = $formData;
     }
 
+    public static function app(): ?Factory
+    {
+        if (self::$app === null) {
+            self::$app = new Factory();
+        }
+
+        return self::$app;
+    }
+
+    public function loadValidationValues(array $values = [])
+    {
+        $this->validationValues = $values;
+    }
+
+    /**
+     * Predefined validators.
+     * @return string[]
+     */
     protected function getValidatorProviders(): array
     {
         return [
-            'required' => Required::class,
             'string' => StringValidator::class,
             'number' => NumberValidator::class,
             'default' => DefaultValidator::class,
+            'required' => RequiredValidator::class,
             'function' => FunctionValidator::class,
         ];
     }
@@ -54,7 +82,7 @@ class Validator
     {
         foreach ($this->serviceContainer->keys() as $validator) {
             $validatorContainer = $this->serviceContainer->offsetGet($validator);
-            if (!$validatorContainer->isValid($this->formData)) {
+            if (!$validatorContainer->isValid($this->validationValues)) {
                 $this->errors = $validatorContainer->errors;
                 return false;
             }
