@@ -24,6 +24,10 @@ class Validator
      */
     protected ?ServiceContainer $serviceContainer;
 
+    /**
+     * Single instance application.
+     * @var Factory|null
+     */
     public static ?Factory $app = null;
 
     /**
@@ -40,13 +44,17 @@ class Validator
      */
     public array $providers = [];
 
-    public function __construct(array $formData = [], $options = [])
+    /**
+     * I18n formatter.
+     * @var I18n|null
+     */
+    private static ?I18n $i18n = null;
+
+    public function __construct(array $options = [])
     {
         $this->serviceContainer = new ServiceContainer();
 
         $this->providers = array_merge($this->providers, $this->getValidatorProviders());
-
-        $this->validationValues = $formData;
     }
 
     public static function app(): ?Factory
@@ -58,6 +66,10 @@ class Validator
         return self::$app;
     }
 
+    /**
+     * Load validation values.
+     * @param array $values
+     */
     public function loadValidationValues(array $values = [])
     {
         $this->validationValues = $values;
@@ -78,6 +90,10 @@ class Validator
         ];
     }
 
+    /**
+     * Returns is valid.
+     * @return bool
+     */
     public function isValid(): bool
     {
         foreach ($this->serviceContainer->keys() as $validator) {
@@ -117,5 +133,17 @@ class Validator
     public function getFirstErrorString()
     {
         return current($this->errors);
+    }
+
+    /**
+     * @return I18n|null
+     */
+    public static function getI18n(): I18n
+    {
+        if (self::$i18n === null) {
+            self::$i18n = new I18n();
+        }
+
+        return self::$i18n;
     }
 }

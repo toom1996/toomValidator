@@ -3,6 +3,7 @@
 namespace EasyValidator\validators;
 
 use EasyValidator\BaseValidation;
+use EasyValidator\Validator;
 
 /**
  * @since v1.0
@@ -45,20 +46,17 @@ class RequiredValidator extends BaseValidation
     }
 
     /**
-     * Valid value whether trigger constraint.
      * @param $value
      * @param $attribute
-     * @return mixed|StringValidator|null
+     * @return array|null
      */
     public function valid($value, $attribute)
     {
-        if (!$this->_isEmpty($value)) {
+        if (!$this->isEmpty($value)) {
             return null;
         }
 
-        return $this->formatMessage('{attribute} 不能为空.', [
-            'attribute' => $attribute
-        ]);
+        return [Validator::getI18n()->translate('{attribute} cannot be blank.'), []];
     }
 
     /**
@@ -66,7 +64,7 @@ class RequiredValidator extends BaseValidation
      * @param $value
      * @return bool
      */
-    private function _isEmpty($value): bool
+    private function isEmpty($value): bool
     {
         if ($this->isStrict) {
             return $value === null;
