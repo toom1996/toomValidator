@@ -3,7 +3,6 @@
 namespace EasyValidator\validators;
 
 use EasyValidator\BaseValidation;
-use EasyValidator\Validator;
 
 /**
  * @since v1.0
@@ -29,23 +28,6 @@ class RequiredValidator extends BaseValidation
     }
 
     /**
-     * Return has error.
-     * @param mixed $value
-     * @return bool
-     */
-    public function isValid(&$value): bool
-    {
-        foreach ($this->validationAttributes as $validationAttribute) {
-            if ($v = $this->valid($value[$validationAttribute], $validationAttribute)) {
-                $this->addErrors($v, $validationAttribute);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * @param $value
      * @param $attribute
      * @return array|null
@@ -56,7 +38,7 @@ class RequiredValidator extends BaseValidation
             return null;
         }
 
-        return [Validator::getI18n()->translate('{attribute} cannot be blank.'), []];
+        $this->addError($attribute, $this->validator->i18n->translate('{attribute} cannot be blank.'), []);
     }
 
     /**

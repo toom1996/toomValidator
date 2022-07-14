@@ -2,27 +2,18 @@
 
 namespace EasyValidator;
 
-use Pimple\ServiceProviderInterface;
-
-abstract class BaseValidation
+class BaseValidation extends ServiceProvider
 {
-    public ?array $errors = [];
-
     /**
      * Validation attributes.
      * @var array
      */
     protected array $validationAttributes = [];
 
-    public function __construct(array $validationAttributes)
-    {
-        $this->addAttributes($validationAttributes);
-    }
-
-    public function addAttributes($validationAttributes)
+    public function setValidationAttributes($validationAttributes)
     {
         if (is_array($validationAttributes)) {
-            $this->validationAttributes = array_merge($this->validationAttributes, $validationAttributes);
+            $this->validationAttributes = $validationAttributes;
         } elseif (is_string($validationAttributes)) {
             $this->validationAttributes[] = $validationAttributes;
         }
@@ -35,8 +26,9 @@ abstract class BaseValidation
     public function isValid(&$value): bool
     {
         foreach ($this->validationAttributes as $validationAttribute) {
-            if ($v = $this->valid($value[$validationAttribute], $validationAttribute)) {
-                $this->addErrors($v, $validationAttribute);
+            $this->valid($value[$validationAttribute], $validationAttribute);
+
+            if ($this->hasError()) {
                 return false;
             }
         }
@@ -50,24 +42,15 @@ abstract class BaseValidation
         return null;
     }
 
-
-    public function formatMessage($message, $params)
+    public function hasError(): bool
     {
-        $placeholders = [];
-        foreach ((array) $params as $name => $value) {
-            $placeholders['{' . $name . '}'] = $value;
-        }
-
-        return ($placeholders === []) ? $message : strtr($message, $placeholders);
+        return (bool)$this->validator->errors;
     }
 
-    public function addErrors($error, $field)
+    public function addError($attribute, $message, $params = [])
     {
-        $this->errors[$field] = $error;
-    }
+        $params['attribute'] = $attribute;
 
-    public function message()
-    {
-
+        $this->validator->errors[$attribute] = $this->validator->formatter->formatMessage($message, $params);
     }
 }

@@ -3,6 +3,7 @@
 namespace EasyValidator;
 
 use EasyValidator\exceptions\InvalidValidatorException;
+use EasyValidator\exceptions\UnknownComponentException;
 use EasyValidator\validators\DefaultValidator;
 use EasyValidator\validators\FunctionValidator;
 use EasyValidator\validators\NumberValidator;
@@ -15,6 +16,7 @@ use EasyValidator\validators\StringValidator;
  * @method NumberValidator number(array $attributes = [])
  * @method DefaultValidator default(array $attributes = [])
  * @method FunctionValidator function(array $attributes = [])
+ * @property Formatter $formatter
  */
 class Validator
 {
@@ -22,13 +24,7 @@ class Validator
      * Provider container.
      * @var ServiceContainer|null
      */
-    protected ?ServiceContainer $serviceContainer;
-
-    /**
-     * Single instance application.
-     * @var Factory|null
-     */
-    public static ?Factory $app = null;
+    public ?ServiceContainer $serviceContainer;
 
     /**
      * Validation values.
@@ -36,34 +32,39 @@ class Validator
      */
     public array $validationValues = [];
 
-    public array $errors;
+    public array $config = [
+        'i18n' => [
+            'language' => 'zh-cn'
+        ]
+    ];
+
+    public array $errors = [];
 
     /**
      * You can customize validation rules by configuring this property.
      * @var array
      */
-    public array $providers = [];
+    public array $providers = [
+        'i18n' => I18n::class,
+        'formatter' => Formatter::class,
+        'required' => RequiredValidator::class,
+        'string' => StringValidator::class,
+        'number' => NumberValidator::class,
+        'default' => DefaultValidator::class,
+        'function' => FunctionValidator::class,
+    ];
 
     /**
-     * I18n formatter.
-     * @var I18n|null
+     * Defined validator language.
+     * @var string
      */
-    private static ?I18n $i18n = null;
+    public string $language = 'en-us';
 
-    public function __construct(array $options = [])
+    public function __construct(array $config = [])
     {
         $this->serviceContainer = new ServiceContainer();
 
-        $this->providers = array_merge($this->providers, $this->getValidatorProviders());
-    }
-
-    public static function app(): ?Factory
-    {
-        if (self::$app === null) {
-            self::$app = new Factory();
-        }
-
-        return self::$app;
+        $this->registerProviders();
     }
 
     /**
@@ -75,19 +76,9 @@ class Validator
         $this->validationValues = $values;
     }
 
-    /**
-     * Predefined validators.
-     * @return string[]
-     */
-    protected function getValidatorProviders(): array
+    protected function registerProviders()
     {
-        return [
-            'string' => StringValidator::class,
-            'number' => NumberValidator::class,
-            'default' => DefaultValidator::class,
-            'required' => RequiredValidator::class,
-            'function' => FunctionValidator::class,
-        ];
+
     }
 
     /**
@@ -96,10 +87,9 @@ class Validator
      */
     public function isValid(): bool
     {
-        foreach ($this->serviceContainer->keys() as $validator) {
-            $validatorContainer = $this->serviceContainer->offsetGet($validator);
+        foreach ($this->serviceContainer->keys() as $key) {
+            $validatorContainer = $this->serviceContainer->offsetGet($key);
             if (!$validatorContainer->isValid($this->validationValues)) {
-                $this->errors = $validatorContainer->errors;
                 return false;
             }
         }
@@ -116,34 +106,48 @@ class Validator
             if (!isset($this->providers[$name])) {
                 throw new InvalidValidatorException("Unknown validator name `$name`, are you config it?");
             }
-            $validation = new $this->providers[$name]($arguments[0]);
+
+            /** @var BaseValidation $validation */
+            $validation = new $this->providers[$name]($this, []);
+
+            // set validation attributes.
+            $validation->setValidationAttributes($arguments[0]);
+
             $name = spl_object_hash($validation);
+
             $this->serviceContainer->offsetSet($name, $validation);
         }
 
         return $this->serviceContainer->offsetGet($name);
     }
 
-
-    public function getErrors()
+    /**
+     * Returns component.
+     * @param string $name
+     * @return mixed
+     * @throws UnknownComponentException
+     */
+    public function __get(string $name)
     {
+        if (!$this->serviceContainer->offsetExists($name)) {
+            if (!isset($this->providers[$name])) {
+                throw new UnknownComponentException("Unknown component name `$name`, are you config it?");
+            }
 
+            $component = new $this->providers[$name]($this, $this->config[$name] ?? []);
+
+            if (!$component instanceof ServiceProvider) {
+                throw new UnknownComponentException("Invalid component name `$name`, it must be instance of " . ServiceProvider::class);
+            }
+
+            $this->serviceContainer->offsetSet($name, $component);
+        }
+
+        return $this->serviceContainer->offsetGet($name);
     }
 
     public function getFirstErrorString()
     {
         return current($this->errors);
-    }
-
-    /**
-     * @return I18n|null
-     */
-    public static function getI18n(): I18n
-    {
-        if (self::$i18n === null) {
-            self::$i18n = new I18n();
-        }
-
-        return self::$i18n;
     }
 }
