@@ -47,42 +47,25 @@ class StringValidator extends BaseValidation
         return $this;
     }
 
-    public function max(int $value)
+    public function max(int $value): StringValidator
     {
         $this->max = $value;
 
         return $this;
     }
 
-    public function equal(int $value)
+    public function equal(int $value): StringValidator
     {
         $this->equal = $value;
 
         return $this;
     }
 
-    public function notEqual(int $value)
+    public function notEqual(int $value): StringValidator
     {
         $this->notEqual = $value;
 
         return $this;
-    }
-
-    /**
-     * Return has error.
-     * @param mixed $value
-     * @return bool
-     */
-    public function isValid(&$value): bool
-    {
-        foreach ($this->validationAttributes as $validationAttribute) {
-            if ($v = $this->valid($value[$validationAttribute], $validationAttribute)) {
-                $this->addErrors($v, $validationAttribute);
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -98,33 +81,31 @@ class StringValidator extends BaseValidation
         }
 
         if (!is_string($value)) {
-            return $this->formatMessage('{attribute} 必须是一个字符串.', [
-                'attribute' => $attribute
-            ]);
+             $this->addError($attribute, '{attribute} 必须是一个字符串.');
         }
 
         $length = mb_strlen($value, $this->encoding);
 
         if ($this->min !== 0 && $length < $this->min) {
-            return $this->formatMessage('{attribute} 至少包含 {min} 个字符.', [
+             $this->addError($attribute, '{attribute} 至少包含 {min} 个字符.', [
                 'min' => $this->min
             ]);
         }
 
         if ($this->max !== 0 && $length > $this->max) {
-            return $this->formatMessage('{attribute} 至多包含 {max} 个字符.', [
+             $this->addError($attribute, '{attribute} 至多包含 {max} 个字符.', [
                 'max' => $this->max
             ]);
         }
 
         if ($this->notEqual !== 0 && $length === $this->notEqual) {
-            return $this->formatMessage('{attribute} 不能为 {length} 个字符.', [
+             $this->addError($attribute, '{attribute} 不能为 {length} 个字符.', [
                 'length' => $this->notEqual
             ]);
         }
 
         if ($this->equal !== 0 && $length !== $this->equal) {
-            return $this->formatMessage('{attribute} 必须包含 {length} 个字符.', [
+             $this->addError($attribute, '{attribute} 必须包含 {length} 个字符.', [
                 'length' => $this->equal
             ]);
         }

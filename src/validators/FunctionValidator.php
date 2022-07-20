@@ -10,7 +10,7 @@ class FunctionValidator extends BaseValidation
 {
     protected $handler = null;
 
-    public function method($method)
+    public function method($method): FunctionValidator
     {
         $this->handler = $method;
 
@@ -21,7 +21,6 @@ class FunctionValidator extends BaseValidation
     {
         foreach ($this->validationAttributes as $validationAttribute) {
             if ($this->handler !== null) {
-                var_dump($this->handler);
                 if (is_callable($this->handler)) {
                     ($this->handler)($value[$validationAttribute], $validationAttribute);
                 } elseif (is_string($this->handler)) {
@@ -29,6 +28,10 @@ class FunctionValidator extends BaseValidation
                 } elseif (is_array($this->handler)) {
                     call_user_func_array($this->handler, [$value[$validationAttribute], $validationAttribute]);
                 }
+            }
+
+            if ($this->hasError()) {
+                return false;
             }
         }
 

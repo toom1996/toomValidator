@@ -8,9 +8,15 @@ class FunctionValidatorTest extends TestCase
     {
         $validator = new \EasyValidator\Validator();
 
-        $validator->function(['age'])->method([\EasyValidator\Factory::class, 'test']);
+        $validator->loadValidationValues(['name' => 'toom']);
 
-        $validator->isValid();
+        $validator->function(['name'])->method(function(&$value, $attr) use ($validator) {
+            $validator->errors[] = '123123';
+            echo '123';
+        });
+
+        var_dump($validator->isValid());
+        var_dump($validator->getFirstErrorString());
         die;
     }
 }

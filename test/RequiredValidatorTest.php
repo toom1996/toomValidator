@@ -7,13 +7,13 @@ class RequiredValidatorTest extends TestCase
 {
     public function testRequired()
     {
-//        $validator = new Validator();
-//
-//        $validator->loadValidationValues(['name' => 'toom']);
-//
-//        $validator->required(['name']);
-//
-//        $this->assertSame(true, $validator->isValid());
+        $validator = new Validator();
+
+        $validator->loadValidationValues(['name' => 'toom']);
+
+        $validator->required(['name']);
+
+        $this->assertSame(true, $validator->isValid());
 
         $validator = new Validator();
 
@@ -22,13 +22,13 @@ class RequiredValidatorTest extends TestCase
         $validator->required(['name', 'age']);
 
         $this->assertSame(false, $validator->isValid());
-
-        var_dump($validator->getFirstErrorString());
     }
 
     public function testRequiredWithStrict()
     {
-        $validator = new Validator(['name' => '']);
+        $validator = new Validator();
+
+        $validator->loadValidationValues(['name' => '']);
 
         $validator->required(['name'])->isStrict(true);
 

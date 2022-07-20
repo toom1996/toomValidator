@@ -30,7 +30,7 @@ class RequiredValidator extends BaseValidation
     /**
      * @param $value
      * @param $attribute
-     * @return array|null
+     * @return null
      */
     public function valid($value, $attribute)
     {

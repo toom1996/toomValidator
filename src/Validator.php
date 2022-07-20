@@ -17,6 +17,7 @@ use EasyValidator\validators\StringValidator;
  * @method DefaultValidator default(array $attributes = [])
  * @method FunctionValidator function(array $attributes = [])
  * @property Formatter $formatter
+ * @property I18n $i18n
  */
 class Validator
 {
@@ -54,14 +55,10 @@ class Validator
         'function' => FunctionValidator::class,
     ];
 
-    /**
-     * Defined validator language.
-     * @var string
-     */
-    public string $language = 'en-us';
-
     public function __construct(array $config = [])
     {
+        $this->config = array_merge($this->config, $config);
+
         $this->serviceContainer = new ServiceContainer();
 
         $this->registerProviders();
@@ -78,7 +75,7 @@ class Validator
 
     protected function registerProviders()
     {
-
+        // TODO register customer providers.
     }
 
     /**
